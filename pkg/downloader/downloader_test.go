@@ -1,44 +1,92 @@
-package downloader_test
+package downloader
 
 import (
 	"os"
-	"sync"
 	"testing"
-
-	"github.com/yourusername/html_downloader/pkg/downloader"
 )
 
 func TestDownloadHTML(t *testing.T) {
-	url := "https://example.com"
-	outputDir := "test_output/"
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	go downloader.DownloadHTML(url, outputDir, wg)
-	wg.Wait()
-
-	// Verify that the file has been created
-	filename := downloader.ExtractFilenameFromURL(url)
-	filePath := outputDir + filename + ".html"
-	_, err := os.Stat(filePath)
+	err := os.MkdirAll("test_output", os.ModePerm)
 	if err != nil {
-		t.Errorf("File not found at path %s", filePath)
+		t.Fatalf("Error creating test_output directory: %s", err)
+	}
+	defer os.RemoveAll("test_output")
+
+	tests := []struct {
+		name            string
+		url             string
+		outputDirectory string
+		wantError       bool
+	}{
+		{
+			name:            "Successful download",
+			url:             "https://www.example.com",
+			outputDirectory: "test_output/",
+			wantError:       false,
+		},
+		{
+			name:            "Invalid URL",
+			url:             "invalid-url", // Provide an invalid URL
+			outputDirectory: "test_output/",
+			wantError:       true,
+		},
 	}
 
-	// Clean up test file
-	err = os.Remove(filePath)
-	if err != nil {
-		t.Errorf("Error removing test file: %s", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := DownloadHTML(tt.url, tt.outputDirectory)
+
+			if tt.wantError && err == nil {
+				t.Errorf("Expected error, but got none")
+			}
+
+			if !tt.wantError && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+		})
 	}
 }
 
+// TestMain runs cleanup after all tests are done
+func TestMain(m *testing.M) {
+	code := m.Run()
+
+	// Clean up test files or directories if needed
+	_ = os.RemoveAll("test_output")
+
+	os.Exit(code)
+}
+
 func TestExtractFilenameFromURL(t *testing.T) {
-	url := "https://example.com/some-page.html"
-	expectedFilename := "some-page.html"
+	tests := []struct {
+		name     string
+		url      string
+		expected string
+	}{
+		{
+			name:     "Basic URL with filename",
+			url:      "https://www.example.com/some/path/file.html",
+			expected: "file.html",
+		},
+		{
+			name:     "URL with trailing slash",
+			url:      "https://www.example.com/some/path/",
+			expected: "", // Modify this based on your expected behavior
+		},
+		{
+			name:     "URL with query parameters",
+			url:      "https://www.example.com/some/path/file.html?param=value",
+			expected: "file.html",
+		},
+	}
 
-	filename := downloader.ExtractFilenameFromURL(url)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ExtractFilenameFromURL(tt.url)
 
-	if filename != expectedFilename {
-		t.Errorf("Expected filename: %s, Got: %s", expectedFilename, filename)
+			if result != tt.expected {
+				t.Errorf("Expected: %s, Got: %s", tt.expected, result)
+			}
+		})
 	}
 }

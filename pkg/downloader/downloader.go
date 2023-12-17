@@ -2,44 +2,65 @@ package downloader
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
-	"sync"
 )
 
 // DownloadHTML downloads HTML content from a given URL and saves it to a file.
-func DownloadHTML(url, outputDirectory string, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func DownloadHTML(url, outputDirectory string) error {
+	// Perform GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Error fetching %s: %s\n", url, err)
-		return
+		return fmt.Errorf("failed to perform GET request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println("Error closing body:", err)
+		}
+	}(resp.Body)
 
-	html, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("Error reading response body for %s: %s\n", url, err)
-		return
+	// Check the response status
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	// Extract the filename from the URL (you might need a more robust method)
-	filename := extractFilenameFromURL(url)
-
+	// Create the output file
+	filename := ExtractFilenameFromURL(url)
 	filePath := outputDirectory + filename + ".html"
-	err = ioutil.WriteFile(filePath, html, 0644)
+	file, err := os.Create(filePath)
 	if err != nil {
-		fmt.Printf("Error writing file for %s: %s\n", url, err)
-		return
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
+
+	// Copy the response body to the file
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to copy response body to file: %w", err)
 	}
 
-	fmt.Printf("Downloaded %s\n", url)
+	return nil // No error occurred
 }
 
-// Function to extract the filename from the URL
-func extractFilenameFromURL(url string) string {
+// ExtractFilenameFromURL Function to extract the filename from the URL
+func ExtractFilenameFromURL(url string) string {
+	// Split the URL by '/'
 	parts := strings.Split(url, "/")
-	return parts[len(parts)-1]
+
+	// Get the last segment, which could represent the filename or directory
+	lastSegment := parts[len(parts)-1]
+
+	// Remove query parameters if present in the last segment
+	filenameWithQuery := strings.Split(lastSegment, "?")[0]
+
+	// Return the extracted filename or directory
+	return filenameWithQuery
 }
