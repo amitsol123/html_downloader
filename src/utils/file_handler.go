@@ -38,5 +38,3 @@ func CreateOutputDirectory(outputDirectory string) error {
 	}
 	return nil
 }
-
-// Other file handling functions...

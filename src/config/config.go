@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	OutputDirectory   = "downloaded_html/"
-	RelativeURLsFile  = "../../ListOfAsciiSiteUrls.txt"
-	BaseURLsFile      = "ListOfAsciiSiteUrls.txt"
-	DefaultMaxWorkers = 5 // Maximum number of workers
+	OutputDirectory      = "downloaded_html/"
+	RelativeURLsFilePath = "../../ListOfAsciiSiteUrls.txt"
+	BaseURLsFilePath     = "ListOfAsciiSiteUrls.txt"
+	DefaultMaxWorkers    = 5 // Maximum number of workers
 )
 
 func GetDefaultMaxWorkers() int {
@@ -22,14 +22,14 @@ func GetDefaultMaxWorkers() int {
 	return DefaultMaxWorkers
 }
 
-func GetOutputDirectory() string {
-	return OutputDirectory
-}
-
 func GetRelativeURLsFile() string {
-	return RelativeURLsFile
+	return RelativeURLsFilePath
 }
 
 func GetBaseURLsFile() string {
-	return BaseURLsFile
+	return BaseURLsFilePath
+}
+
+func GetOutputDirectory() string {
+	return OutputDirectory
 }

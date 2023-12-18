@@ -1,11 +1,23 @@
 package downloader
 
 import (
+	"github.com/amitsol123/html_downloader/pkg/downloader"
 	"os"
 	"testing"
 )
 
-func TestDownloadHTML(t *testing.T) {
+// TestMain runs cleanup after all tests are done
+func TestMain(m *testing.M) {
+
+	code := m.Run()
+
+	// Clean up tests files or directories if needed
+	_ = os.RemoveAll("test_output")
+
+	os.Exit(code)
+}
+
+func TestDownloadHTMLContent(t *testing.T) {
 	err := os.MkdirAll("test_output", os.ModePerm)
 	if err != nil {
 		t.Fatalf("Error creating test_output directory: %s", err)
@@ -34,7 +46,7 @@ func TestDownloadHTML(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := DownloadHTML(tt.url, tt.outputDirectory)
+			err := downloader.DownloadHTMLContent(tt.url, tt.outputDirectory)
 
 			if tt.wantError && err == nil {
 				t.Errorf("Expected error, but got none")
@@ -45,16 +57,6 @@ func TestDownloadHTML(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestMain runs cleanup after all tests are done
-func TestMain(m *testing.M) {
-	code := m.Run()
-
-	// Clean up test files or directories if needed
-	_ = os.RemoveAll("test_output")
-
-	os.Exit(code)
 }
 
 func TestExtractFilenameFromURL(t *testing.T) {
@@ -82,7 +84,7 @@ func TestExtractFilenameFromURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ExtractFilenameFromURL(tt.url)
+			result := downloader.ExtractFilenameFromURL(tt.url)
 
 			if result != tt.expected {
 				t.Errorf("Expected: %s, Got: %s", tt.expected, result)

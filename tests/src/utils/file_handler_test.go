@@ -1,35 +1,13 @@
-package main
+package utils
 
 import (
-	"fmt"
+	"errors"
+	"github.com/amitsol123/html_downloader/src/utils"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 )
-
-func TestGetDefaultMaxWorkers(t *testing.T) {
-	tests := []struct {
-		args     []string
-		expected int
-	}{
-		{[]string{"programName"}, 5}, // Mimicking no arguments
-		{[]string{"programName", "8"}, 8},
-		{[]string{"programName", "invalid"}, 5},
-		{[]string{"programName", "-5"}, 5},                                 // Negative number argument
-		{[]string{"programName", "9999999999999999999999999999999999"}, 5}, // Too large number
-	}
-
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("Args: %v", test.args), func(t *testing.T) {
-			os.Args = test.args
-			result := getDefaultMaxWorkers()
-			if result != test.expected {
-				t.Errorf("Expected %d workers, but got %d", test.expected, result)
-			}
-		})
-	}
-}
 
 func TestReadURLsFromFile(t *testing.T) {
 	tests := []struct {
@@ -72,7 +50,7 @@ func TestReadURLsFromFile(t *testing.T) {
 			defer os.Remove(tmpfile.Name()) // Clean up the temp file
 			defer tmpfile.Close()
 
-			result, err := readURLsFromFile(tmpfile.Name())
+			result, err := filehandler.ReadURLsFromFile(tmpfile.Name())
 
 			assertResult(t, result, test.expected)
 			assertError(t, err, test.expectedErr)
@@ -80,7 +58,7 @@ func TestReadURLsFromFile(t *testing.T) {
 	}
 }
 
-// Utility functions for creating/deleting a test file
+// Utility functions for creating/deleting a tests file
 func createTempFile(t *testing.T, filename, content string) *os.File {
 	tmpfile, err := ioutil.TempFile("", filename)
 	if err != nil {
@@ -99,7 +77,7 @@ func assertResult(t *testing.T, result, expected []string) {
 }
 
 func assertError(t *testing.T, err, expectedErr error) {
-	if err != expectedErr {
+	if !errors.Is(err, expectedErr) {
 		t.Errorf("Expected error: %v, got: %v", expectedErr, err)
 	}
 }

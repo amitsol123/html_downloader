@@ -2,32 +2,25 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
+	filehandler "github.com/amitsol123/html_downloader/src/utils"
 	"sync"
 
 	"github.com/amitsol123/html_downloader/pkg/downloader"
-)
-
-const (
-	outputDirectory   = "downloaded_html/"
-	relativeURLsFile  = "../../ListOfAsciiSiteUrls.txt"
-	baseURLsFile      = "ListOfAsciiSiteUrls.txt"
-	defaultMaxWorkers = 5 // Maximum number of workers
+	"github.com/amitsol123/html_downloader/src/config"
 )
 
 func main() {
-	maxWorkers := getDefaultMaxWorkers()
-	urlList, err := readURLsFromFile(getURLsFilePath())
+	maxWorkers := config.GetDefaultMaxWorkers()
+	urlFilePath := filehandler.GetURLsFilePath(config.GetRelativeURLsFile(), config.GetBaseURLsFile())
+	urlList, err := filehandler.ReadURLsFromFile(urlFilePath)
 	if err != nil {
-		fmt.Println("Error reading URLs:", err)
+		handleError("Error reading URLs", err)
 		return
 	}
 
-	err = createOutputDirectory()
+	err = filehandler.CreateOutputDirectory(config.GetOutputDirectory())
 	if err != nil {
-		fmt.Println("Error creating output directory:", err)
+		handleError("Error creating output directory", err)
 		return
 	}
 
@@ -44,7 +37,7 @@ func main() {
 				wg.Done()
 			}()
 
-			err := downloader.DownloadHTML(url, outputDirectory)
+			err := downloader.DownloadHTMLContent(url, config.GetOutputDirectory())
 			if err != nil {
 				fmt.Printf("Error downloading from %s: %s\n", url, err)
 				return
@@ -56,48 +49,6 @@ func main() {
 	fmt.Println("All downloads completed!")
 }
 
-func getDefaultMaxWorkers() int {
-	if len(os.Args) > 1 {
-		workers, err := strconv.Atoi(os.Args[1])
-		if err == nil && workers > 0 {
-			return workers
-		}
-		fmt.Println("Invalid number of workers. Using default.")
-	}
-	return defaultMaxWorkers
-}
-
-func readURLsFromFile(filename string) ([]string, error) {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(content) == 0 {
-		return []string{}, nil // Return an empty string array if content is empty
-	}
-
-	return strings.Split(string(content), "\n"), nil
-}
-
-func getURLsFilePath() string {
-	if _, err := os.Stat(relativeURLsFile); err == nil {
-		return relativeURLsFile // Use relative path if file exists
-	}
-	// File doesn't exist using the relative path, try using an absolute path
-
-	if _, err := os.Stat(baseURLsFile); err == nil {
-		return baseURLsFile // Use absolute path if file exists
-	}
-	// If file not found in both relative and absolute paths, handle it accordingly
-	return "" // Or return an error, log a message, etc.
-}
-
-func createOutputDirectory() error {
-	if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
-		return os.Mkdir(outputDirectory, 0755)
-	} else if err != nil {
-		return err
-	}
-	return nil
+func handleError(msg string, err error) {
+	fmt.Println(msg, ":", err)
 }
