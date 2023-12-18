@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// DownloadHTML downloads HTML content from a given URL and saves it to a file.
+// DownloadHTMLContent DownloadHTML downloads HTML content from a given URL and saves it to a file.
 func DownloadHTMLContent(url, outputDirectory string) error {
 	// Perform GET request
 	resp, err := http.Get(url)
