@@ -17,26 +17,18 @@ This program utilizes Go's concurrency features (goroutines, channels, and wait 
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/your_username/your_repo.git
-    cd your_repo
+    git clone https://github.com/amitsol123/html_downloader.git
+    cd html_downloader
     ```
-
-2. **Install dependencies:** (If any)
+   
+2. **Build the project:**
     ```bash
-    # If using any external dependencies, provide installation instructions here
-    ```
-
-3. **Build the project:**
-    ```bash
-    go build -o html_downloader main.go
+    go build -o html_downloader
     ```
 
 ## Usage
 
-1. **Prepare the URLs:**
-    - Create a text file (`urls.txt`) with a list of URLs, each on a new line.
-
-2.**Run the program:**
+**Run the program:**
 ```bash
 # Run with default number of workers (5)
 ./html_downloader
