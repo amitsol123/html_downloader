@@ -18,7 +18,7 @@ This program utilizes Go's concurrency features (goroutines, channels, and wait 
 1. **Clone the repository:**
     ```bash
     git clone https://github.com/amitsol123/html_downloader.git
-    cd html_downloader
+    cd html_downloader/
     ```
    
 2. **Build the project:**
